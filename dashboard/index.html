@@ -1,0 +1,182 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CareGuardian Hospital Dashboard</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 20px; background: #f4f7fb; color: #1d2733; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      .card { background: white; border-radius: 12px; border: 1px solid #dbe3ec; padding: 14px; }
+      input, button { padding: 8px; margin: 4px 0; }
+      table { width: 100%; border-collapse: collapse; }
+      td, th { border-bottom: 1px solid #edf1f6; text-align: left; padding: 8px; }
+      .badge { padding: 4px 8px; border-radius: 999px; background: #edf4ff; font-size: 12px; }
+      .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <h1>CareGuardian Hospital Dashboard (Pilot)</h1>
+    <p>Live emergency queue + admissions + bed/ICU updates. Demo login: <b>9111111111 / demo123</b></p>
+    <div class="grid">
+      <div class="card">
+        <h3>Admin Login</h3>
+        <input id="phone" value="9111111111" />
+        <input id="password" type="password" value="demo123" />
+        <button onclick="login()">Login</button>
+        <p id="loginState"></p>
+      </div>
+      <div class="card">
+        <h3>Availability Update</h3>
+        <input id="beds" type="number" placeholder="Beds" />
+        <input id="icu" type="number" placeholder="ICU" />
+        <input id="ambulanceReady" type="number" placeholder="Ambulances" />
+        <button onclick="updateAvailability()">Save</button>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>Incoming Emergencies</h3>
+        <table>
+          <thead><tr><th>ID</th><th>Status</th><th>Type</th><th>Action</th></tr></thead>
+          <tbody id="queue"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>Admissions Queue</h3>
+        <table>
+          <thead><tr><th>ID</th><th>Status</th><th>Reason</th><th>Action</th></tr></thead>
+          <tbody id="admissions"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Audit Timeline</h3>
+      <table>
+        <thead><tr><th>Event</th><th>Actor</th><th>Timestamp</th></tr></thead>
+        <tbody id="audit"></tbody>
+      </table>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const API = window.location.origin;
+      let token = "";
+      let hospitalId = "h1";
+      const queue = new Map();
+      const admissions = new Map();
+      const audits = [];
+      const socket = io(API);
+
+      socket.on("bootstrap", (data) => {
+        (data.emergencies || []).forEach((e) => queue.set(e.id, e));
+        (data.admissions || []).forEach((a) => admissions.set(a.id, a));
+        renderEmergency();
+        renderAdmissions();
+      });
+
+      socket.on("emergency:created", (e) => { queue.set(e.id, e); renderEmergency(); });
+      socket.on("emergency:updated", (e) => { queue.set(e.id, e); renderEmergency(); });
+      socket.on("admission:created", (a) => { admissions.set(a.id, a); renderAdmissions(); });
+      socket.on("admission:updated", (a) => { admissions.set(a.id, a); renderAdmissions(); });
+      socket.on("audit:created", (a) => {
+        audits.unshift(a);
+        renderAudit();
+      });
+
+      function renderEmergency() {
+        const rows = [...queue.values()].reverse().slice(0, 25).map((e) => `
+          <tr>
+            <td>${e.id}</td>
+            <td><span class='badge'>${e.status}</span></td>
+            <td>${e.emergencyType || 'general'}</td>
+            <td>${e.status === 'awaiting_hospital_confirmation' ? `<button onclick="confirmEmergency('${e.id}')">Confirm Dispatch</button>` : '-'}</td>
+          </tr>
+        `).join('');
+        document.getElementById('queue').innerHTML = rows;
+      }
+
+      function renderAdmissions() {
+        const rows = [...admissions.values()].reverse().slice(0, 25).map((a) => `
+          <tr>
+            <td>${a.id}</td>
+            <td><span class='badge'>${a.status}</span></td>
+            <td>${a.reason || 'general'}</td>
+            <td>${a.status === 'submitted' ? `<button onclick="decision('${a.id}','approved')">Approve</button><button onclick="decision('${a.id}','rejected')">Reject</button>` : '-'}</td>
+          </tr>
+        `).join('');
+        document.getElementById('admissions').innerHTML = rows;
+      }
+
+      function renderAudit() {
+        const rows = audits.slice(0, 25).map((a) => `
+          <tr>
+            <td>${a.eventType}</td>
+            <td>${a.actorId}</td>
+            <td>${a.createdAt}</td>
+          </tr>
+        `).join('');
+        document.getElementById('audit').innerHTML = rows;
+      }
+
+      async function login() {
+        const phone = document.getElementById('phone').value;
+        const password = document.getElementById('password').value;
+        const res = await fetch(`${API}/auth/login`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, password })
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          document.getElementById('loginState').textContent = 'Login failed';
+          return;
+        }
+        token = json.token;
+        hospitalId = json.user.hospitalId || 'h1';
+        document.getElementById('loginState').textContent = `Logged in as ${json.user.name}`;
+
+        const auditRes = await fetch(`${API}/dashboard/audit`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const auditData = await auditRes.json();
+        audits.splice(0, audits.length, ...auditData);
+        renderAudit();
+      }
+
+      async function updateAvailability() {
+        if (!token) return alert('Login first');
+        const payload = {
+          beds: Number(document.getElementById('beds').value || 0),
+          icu: Number(document.getElementById('icu').value || 0),
+          ambulanceReady: Number(document.getElementById('ambulanceReady').value || 0)
+        };
+        await fetch(`${API}/dashboard/hospitals/${hospitalId}/availability`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+        alert('Availability updated');
+      }
+
+      async function confirmEmergency(id) {
+        if (!token) return alert('Login first');
+        await fetch(`${API}/dashboard/emergencies/${id}/confirm`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+
+      async function decision(id, type) {
+        if (!token) return alert('Login first');
+        await fetch(`${API}/dashboard/admissions/${id}/decision`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ decision: type })
+        });
+      }
+    </script>
+  </body>
+</html>

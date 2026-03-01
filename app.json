@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "careguardian-mobile-app",
+    "slug": "careguardian-mobile-app",
+    "version": "0.2.2",
+    "orientation": "portrait",
+    "scheme": "careguardian",
+    "userInterfaceStyle": "light",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "plugins": [
+      "expo-dev-client"
+    ]
+  }
+}
