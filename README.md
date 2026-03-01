@@ -4,6 +4,7 @@ CareGuardian is a mobile-first healthcare orchestration app designed to reduce e
 
 ## SDK compatibility fix
 
+This project is configured for **Expo SDK 54** and includes explicit Expo config (`app.json`) so Expo Go/dev client picks up a stable app identity and runtime metadata.
 This project is now configured for **Expo SDK 54** to avoid the Expo Go mismatch error:
 
 > Either upgrade this project to SDK 54 or install an older version of Expo Go that is compatible with your project.
@@ -65,6 +66,18 @@ Start Metro dev server:
 npm run start
 ```
 
+Start Metro over LAN (best when testing on physical devices in same network):
+
+```bash
+npm run start:lan
+```
+
+Start Metro over tunnel (best when LAN/localhost networking fails):
+
+```bash
+npm run start:tunnel
+```
+
 Start development client server (for custom native modules/dev builds):
 
 ```bash
@@ -81,6 +94,18 @@ Other scripts:
 
 - `npm run android` (local Android dev build)
 - `npm run ios` (local iOS dev build)
+- `npm run typecheck`
+
+## Troubleshooting the manifest/host issue
+
+If your manifest shows `hostUri` or `debuggerHost` as `127.0.0.1:8081`, a physical phone usually cannot connect to that address.
+
+Try this sequence:
+
+1. Run `npm run start:lan` and scan QR from a device on the same Wi-Fi.
+2. If corporate Wi-Fi blocks local discovery, run `npm run start:tunnel`.
+3. Keep Expo Go on a version that supports SDK 54.
+4. If you use dev builds, use `npm run dev` and launch the installed dev client.
 ## Getting started
 
 ```bash
