@@ -11,6 +11,11 @@
       "android",
       "web"
     ],
+    "version": "0.2.1",
+    "orientation": "portrait",
+    "scheme": "careguardian",
+    "userInterfaceStyle": "light",
+    "platforms": ["ios", "android", "web"],
     "ios": {
       "supportsTablet": true
     },
@@ -28,5 +33,9 @@
     "plugins": [
       "expo-dev-client"
     ]
+  }
+}
+}
+    "assetBundlePatterns": ["**/*"]
   }
 }
