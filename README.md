@@ -2,6 +2,12 @@
 
 CareGuardian is a mobile-first healthcare orchestration app designed to reduce emergency response time, improve hospital coordination, and empower families with proactive care workflows.
 
+## SDK compatibility fix
+
+This project is now configured for **Expo SDK 54** to avoid the Expo Go mismatch error:
+
+> Either upgrade this project to SDK 54 or install an older version of Expo Go that is compatible with your project.
+
 ## What this starter includes
 
 This repository contains a **React Native (Expo + TypeScript)** starter implementation focused on:
@@ -45,6 +51,36 @@ This repository contains a **React Native (Expo + TypeScript)** starter implemen
    - Hospital on Wheels readiness
    - Hospital integration API network plan
 
+## Running on development servers
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start Metro dev server:
+
+```bash
+npm run start
+```
+
+Start development client server (for custom native modules/dev builds):
+
+```bash
+npm run dev
+```
+
+Start web development server:
+
+```bash
+npm run web
+```
+
+Other scripts:
+
+- `npm run android` (local Android dev build)
+- `npm run ios` (local iOS dev build)
 ## Getting started
 
 ```bash
