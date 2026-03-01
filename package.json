@@ -20,6 +20,8 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "start:lan": "expo start --dev-client --lan",
+    "start:tunnel": "expo start --dev-client --tunnel",
+    "backend": "node backend/src/server.js"
     "start:tunnel": "expo start --dev-client --tunnel"
     "start:lan": "expo start --lan",
     "start:tunnel": "expo start --tunnel"
@@ -49,6 +51,7 @@
     "typescript": "~5.9.2",
     "babel-preset-expo": "^54.0.0"
   }
+}
 }
     "react-native-reanimated": "~4.1.1"
     "react-native-screens": "~4.16.0"
