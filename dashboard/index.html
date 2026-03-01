@@ -1,0 +1,113 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CareGuardian Hospital Dashboard</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 20px; background: #f4f7fb; color: #1d2733; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      .card { background: white; border-radius: 12px; border: 1px solid #dbe3ec; padding: 14px; }
+      input, button { padding: 8px; margin: 4px 0; }
+      table { width: 100%; border-collapse: collapse; }
+      td, th { border-bottom: 1px solid #edf1f6; text-align: left; padding: 8px; }
+      .badge { padding: 4px 8px; border-radius: 999px; background: #edf4ff; font-size: 12px; }
+    </style>
+  </head>
+  <body>
+    <h1>CareGuardian Hospital Dashboard (Pilot)</h1>
+    <p>Live emergency queue + bed/ICU updates. Demo login: <b>9111111111 / demo123</b></p>
+    <div class="grid">
+      <div class="card">
+        <h3>Admin Login</h3>
+        <input id="phone" value="9111111111" />
+        <input id="password" type="password" value="demo123" />
+        <button onclick="login()">Login</button>
+        <p id="loginState"></p>
+      </div>
+      <div class="card">
+        <h3>Availability Update</h3>
+        <input id="beds" type="number" placeholder="Beds" />
+        <input id="icu" type="number" placeholder="ICU" />
+        <input id="ambulanceReady" type="number" placeholder="Ambulances" />
+        <button onclick="updateAvailability()">Save</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <h3>Incoming Emergencies</h3>
+      <table>
+        <thead><tr><th>ID</th><th>Status</th><th>Type</th><th>Action</th></tr></thead>
+        <tbody id="queue"></tbody>
+      </table>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const API = window.location.origin;
+      let token = "";
+      let hospitalId = "h1";
+      const queue = new Map();
+      const socket = io(API);
+
+      socket.on("bootstrap", (data) => {
+        (data.emergencies || []).forEach((e) => queue.set(e.id, e));
+        render();
+      });
+      socket.on("emergency:created", (e) => { queue.set(e.id, e); render(); });
+      socket.on("emergency:updated", (e) => { queue.set(e.id, e); render(); });
+
+      function render() {
+        const rows = [...queue.values()].reverse().slice(0, 25).map((e) => `
+          <tr>
+            <td>${e.id}</td>
+            <td><span class='badge'>${e.status}</span></td>
+            <td>${e.emergencyType || 'general'}</td>
+            <td>${e.status === 'awaiting_hospital_confirmation' ? `<button onclick="confirmEmergency('${e.id}')">Confirm Dispatch</button>` : '-'}</td>
+          </tr>
+        `).join('');
+        document.getElementById('queue').innerHTML = rows;
+      }
+
+      async function login() {
+        const phone = document.getElementById('phone').value;
+        const password = document.getElementById('password').value;
+        const res = await fetch(`${API}/auth/login`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, password })
+        });
+        const json = await res.json();
+        if (!res.ok) {
+          document.getElementById('loginState').textContent = 'Login failed';
+          return;
+        }
+        token = json.token;
+        hospitalId = json.user.hospitalId || 'h1';
+        document.getElementById('loginState').textContent = `Logged in as ${json.user.name}`;
+      }
+
+      async function updateAvailability() {
+        if (!token) return alert('Login first');
+        const payload = {
+          beds: Number(document.getElementById('beds').value || 0),
+          icu: Number(document.getElementById('icu').value || 0),
+          ambulanceReady: Number(document.getElementById('ambulanceReady').value || 0)
+        };
+        await fetch(`${API}/dashboard/hospitals/${hospitalId}/availability`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
+        alert('Availability updated');
+      }
+
+      async function confirmEmergency(id) {
+        if (!token) return alert('Login first');
+        await fetch(`${API}/dashboard/emergencies/${id}/confirm`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+    </script>
+  </body>
+</html>
