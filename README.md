@@ -5,6 +5,9 @@ CareGuardian is a mobile-first healthcare orchestration app designed to reduce e
 ## SDK compatibility fix
 
 This project is configured for **Expo SDK 54** and includes explicit Expo config (`app.json`) so Expo Go/dev client picks up a stable app identity and runtime metadata.
+This project is now configured for **Expo SDK 54** to avoid the Expo Go mismatch error:
+
+> Either upgrade this project to SDK 54 or install an older version of Expo Go that is compatible with your project.
 
 ## What this starter includes
 
@@ -103,6 +106,16 @@ Try this sequence:
 2. If corporate Wi-Fi blocks local discovery, run `npm run start:tunnel`.
 3. Keep Expo Go on a version that supports SDK 54.
 4. If you use dev builds, use `npm run dev` and launch the installed dev client.
+## Getting started
+
+```bash
+npm install
+npm run start
+```
+
+Other scripts:
+
+- `npm run typecheck`
 
 ## Suggested next steps
 
