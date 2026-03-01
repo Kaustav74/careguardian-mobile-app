@@ -2,6 +2,13 @@
 
 CareGuardian is a mobile-first healthcare orchestration app designed to reduce emergency response time, improve hospital coordination, and empower families with proactive care workflows.
 
+## Runtime mode: no Expo Go
+
+This project is now configured to run with a **development build (expo-dev-client)** by default.
+
+- `npm run start` launches Metro in **dev-client mode**.
+- `npm run android` / `npm run ios` build and run native apps locally.
+- Expo Go is optional and no longer the default workflow.
 ## SDK compatibility fix
 
 This project is configured for **Expo SDK 54** and includes explicit Expo config (`app.json`) so Expo Go/dev client picks up a stable app identity and runtime metadata.
@@ -52,6 +59,7 @@ This repository contains a **React Native (Expo + TypeScript)** starter implemen
    - Hospital on Wheels readiness
    - Hospital integration API network plan
 
+## Running (development build workflow)
 ## Running on development servers
 
 Install dependencies:
@@ -60,6 +68,32 @@ Install dependencies:
 npm install
 ```
 
+Build & run Android dev app (no Expo Go):
+
+```bash
+npm run android
+```
+
+Build & run iOS dev app (no Expo Go):
+
+```bash
+npm run ios
+```
+
+Start Metro for installed dev client:
+
+```bash
+npm run start
+```
+
+Alternative Metro modes:
+
+```bash
+npm run start:lan
+npm run start:tunnel
+```
+
+Web server:
 Start Metro dev server:
 
 ```bash
@@ -92,6 +126,15 @@ npm run web
 
 Other scripts:
 
+- `npm run typecheck`
+- `npm run start:metro` (plain Metro without dev-client flag)
+
+## Troubleshooting
+
+1. If your device cannot connect and you see localhost/127.0.0.1 host URI, use `npm run start:lan`.
+2. If LAN is blocked, use `npm run start:tunnel`.
+3. If you see `Cannot find module 'babel-preset-expo'`, run `npm install` and restart with `npx expo start -c`.
+4. If web bundling fails with `Unable to resolve "fbjs/lib/invariant"`, ensure dependencies are installed from the latest `package.json` and run `npm run web` again.
 - `npm run android` (local Android dev build)
 - `npm run ios` (local iOS dev build)
 - `npm run typecheck`

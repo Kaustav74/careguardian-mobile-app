@@ -2,6 +2,15 @@
   "expo": {
     "name": "careguardian-mobile-app",
     "slug": "careguardian-mobile-app",
+    "version": "0.2.2",
+    "orientation": "portrait",
+    "scheme": "careguardian",
+    "userInterfaceStyle": "light",
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "version": "0.2.1",
     "orientation": "portrait",
     "scheme": "careguardian",
@@ -18,6 +27,14 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "plugins": [
+      "expo-dev-client"
+    ]
+  }
+}
     "assetBundlePatterns": ["**/*"]
   }
 }
