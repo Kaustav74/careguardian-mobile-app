@@ -81,6 +81,15 @@ Other scripts:
 
 - `npm run android` (local Android dev build)
 - `npm run ios` (local iOS dev build)
+## Getting started
+
+```bash
+npm install
+npm run start
+```
+
+Other scripts:
+
 - `npm run typecheck`
 
 ## Suggested next steps
