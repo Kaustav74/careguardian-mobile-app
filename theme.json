@@ -1,0 +1,11 @@
+{
+  "style": "professional",
+  "appearance": "light",
+  "primary": "blue",
+  "tokens": {
+    "background": "--background",
+    "foreground": "--foreground",
+    "primary": "--primary",
+    "radius": "--radius"
+  }
+}
