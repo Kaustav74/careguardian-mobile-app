@@ -21,12 +21,19 @@ CareGuardian is an all-in-one healthcare web application with role-aware access 
 
 ## Environment
 
-Copy `.env.example` to `.env` and set values:
+Copy `.env.example` to `.env` and set values (no spaces around `=`):
 
 - `DATABASE_URL` (required)
 - `SESSION_SECRET` (required)
 - `OPENAI_API_KEY` (required for AI endpoints)
 - Stripe keys (optional for subscription module integration)
+
+Example:
+```env
+DATABASE_URL=postgresql://...
+OPENAI_API_KEY=sk-proj-...
+SESSION_SECRET=your_generated_secret
+```
 
 ## Run (dev server on port 5000)
 
