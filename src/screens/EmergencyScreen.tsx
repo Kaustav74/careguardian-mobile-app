@@ -79,6 +79,17 @@ export function EmergencyScreen() {
     } catch (_error) {
       Alert.alert("Cancel failed", "Cancel window may be closed already.");
     }
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SectionCard } from "../components/SectionCard";
+import { hospitals } from "../data/mock";
+
+export function EmergencyScreen() {
+  const triggerSOS = () => {
+    const nearest = hospitals[0];
+    Alert.alert(
+      "Emergency Activated",
+      `Alert sent to ${nearest.name}. Ambulance dispatched (ETA ${nearest.eta}). Basic medical profile shared securely.`
+    );
   };
 
   return (
@@ -107,6 +118,23 @@ export function EmergencyScreen() {
         ))}
         {!hospitals.length ? <Text style={styles.rowMeta}>No live data. Start backend server.</Text> : null}
       </SectionCard>
+      <TouchableOpacity style={styles.sosButton} onPress={triggerSOS}>
+        <Text style={styles.sosText}>One-Tap SOS</Text>
+      </TouchableOpacity>
+
+      <SectionCard title="Live Hospital Capacity" subtitle="Nearest partnered hospitals">
+        {hospitals.map((h) => (
+          <View key={h.name} style={styles.row}>
+            <Text style={styles.rowTitle}>{h.name}</Text>
+            <Text style={styles.rowMeta}>Beds: {h.beds} | ICU: {h.icu} | ETA: {h.eta}</Text>
+          </View>
+        ))}
+      </SectionCard>
+
+      <SectionCard
+        title="Emergency Flow"
+        subtitle="1) Trigger SOS → 2) Dispatch ambulance → 3) Share profile → 4) Track ambulance live"
+      />
     </ScrollView>
   );
 }
@@ -135,6 +163,9 @@ const styles = StyleSheet.create({
     marginBottom: 16
   },
   cancelText: { color: "#d92d20", fontWeight: "700" },
+    marginBottom: 20
+  },
+  sosText: { color: "white", fontWeight: "800", fontSize: 22 },
   row: { marginBottom: 10 },
   rowTitle: { fontWeight: "700", color: "#1c2b3a" },
   rowMeta: { color: "#5d6b7b", marginTop: 2 }

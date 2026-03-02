@@ -18,6 +18,7 @@
   <body>
     <h1>CareGuardian Hospital Dashboard (Pilot)</h1>
     <p>Live emergency queue + admissions + bed/ICU updates. Demo login: <b>9111111111 / demo123</b></p>
+    <p>Live emergency queue + bed/ICU updates. Demo login: <b>9111111111 / demo123</b></p>
     <div class="grid">
       <div class="card">
         <h3>Admin Login</h3>
@@ -58,6 +59,11 @@
       <table>
         <thead><tr><th>Event</th><th>Actor</th><th>Timestamp</th></tr></thead>
         <tbody id="audit"></tbody>
+    <div class="card" style="margin-top:16px;">
+      <h3>Incoming Emergencies</h3>
+      <table>
+        <thead><tr><th>ID</th><th>Status</th><th>Type</th><th>Action</th></tr></thead>
+        <tbody id="queue"></tbody>
       </table>
     </div>
 
@@ -88,6 +94,12 @@
       });
 
       function renderEmergency() {
+        render();
+      });
+      socket.on("emergency:created", (e) => { queue.set(e.id, e); render(); });
+      socket.on("emergency:updated", (e) => { queue.set(e.id, e); render(); });
+
+      function render() {
         const rows = [...queue.values()].reverse().slice(0, 25).map((e) => `
           <tr>
             <td>${e.id}</td>

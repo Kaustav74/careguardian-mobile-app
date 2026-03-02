@@ -50,6 +50,15 @@ const db = {
   admissions: [],
   notifications: [],
   auditLogs: []
+    { id: "u1", phone: "9000000001", password: "demo123", role: "user", name: "Asha Roy", guardianIds: ["u2"] },
+    { id: "u2", phone: "9000000002", password: "demo123", role: "guardian", name: "Rahul Roy", guardianIds: [] },
+    { id: "h1_admin", phone: "9111111111", password: "demo123", role: "hospital_admin", hospitalId: "h1", name: "CityCare Desk" }
+  ],
+  hospitals: [
+    { id: "h1", name: "CityCare Hospital", lat: 22.5726, lng: 88.3639, beds: 8, icu: 2, ambulanceReady: 2 },
+    { id: "h2", name: "Sunrise Medical Center", lat: 22.5860, lng: 88.4020, beds: 4, icu: 1, ambulanceReady: 1 }
+  ],
+  emergencies: []
 };
 
 const toRadians = (v) => (v * Math.PI) / 180;
@@ -83,6 +92,7 @@ function auth(req, res, next) {
     req.user = jwt.verify(token, JWT_SECRET);
     next();
   } catch {
+  } catch (err) {
     return res.status(401).json({ error: "invalid_token" });
   }
 }
@@ -168,6 +178,9 @@ app.post("/auth/login", (req, res) => {
       guardianIds: user.guardianIds || [],
       hospitalId: user.hospitalId || null
     }
+  res.json({
+    token: signToken(user),
+    user: { id: user.id, name: user.name, role: user.role, guardianIds: user.guardianIds || [], hospitalId: user.hospitalId || null }
   });
 });
 
@@ -234,11 +247,16 @@ app.post("/emergencies", auth, requireRole("user"), (req, res) => {
     const hospital = nearestHospital(current.location);
     if (!hospital) {
       emergencyStatusUpdate(current, "failed_no_capacity", "failed_no_capacity");
+      current.status = "failed_no_capacity";
+      io.emit("emergency:updated", current);
       return;
     }
 
     current.hospitalId = hospital.id;
     emergencyStatusUpdate(current, "awaiting_hospital_confirmation", "awaiting_hospital_confirmation");
+    current.status = "awaiting_hospital_confirmation";
+    current.ambulanceStatus = "awaiting_hospital_confirmation";
+    io.emit("emergency:updated", current);
   }, 5000);
 
   res.status(201).json({ emergency });
@@ -250,6 +268,9 @@ app.post("/emergencies/:id/cancel", auth, requireRole("user"), (req, res) => {
   if (emergency.status !== "pending_cancel") return res.status(409).json({ error: "cancel_window_closed" });
 
   emergencyStatusUpdate(emergency, "cancelled", "cancelled");
+  emergency.status = "cancelled";
+  emergency.ambulanceStatus = "cancelled";
+  io.emit("emergency:updated", emergency);
   res.json({ ok: true, emergency });
 });
 
@@ -263,6 +284,19 @@ app.post("/dashboard/emergencies/:id/confirm", auth, requireRole("hospital_admin
 
   setTimeout(() => {
     emergencyStatusUpdate(emergency, "arrived_at_scene", "arrived");
+  if (emergency.status !== "awaiting_hospital_confirmation") {
+    return res.status(409).json({ error: "invalid_state" });
+  }
+
+  emergency.status = "ambulance_dispatched";
+  emergency.ambulanceStatus = "en_route";
+  emergency.hospitalConfirmedAt = new Date().toISOString();
+  io.emit("emergency:updated", emergency);
+
+  setTimeout(() => {
+    emergency.ambulanceStatus = "arrived";
+    emergency.status = "arrived_at_scene";
+    io.emit("emergency:updated", emergency);
   }, 5000);
 
   res.json({ ok: true, emergency });
@@ -362,6 +396,7 @@ io.on("connection", (socket) => {
     admissions: db.admissions.slice(-20),
     notifications: db.notifications.slice(-20)
   });
+  socket.emit("bootstrap", { hospitals: db.hospitals, emergencies: db.emergencies.slice(-20) });
 });
 
 server.listen(PORT, () => {

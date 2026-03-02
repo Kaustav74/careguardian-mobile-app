@@ -56,6 +56,11 @@ export function AppointmentsScreen() {
     }
   };
 
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { SectionCard } from "../components/SectionCard";
+import { appointments } from "../data/mock";
+
+export function AppointmentsScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Text style={styles.heading}>Appointments & Admissions</Text>
@@ -87,6 +92,21 @@ export function AppointmentsScreen() {
             <Text style={styles.meta}>{n.body}</Text>
           </View>
         ))}
+      <SectionCard title="Real-time Doctor Slots" subtitle="Book instantly with hospital availability">
+        {appointments.map((a) => (
+          <View key={`${a.doctor}-${a.slot}`} style={styles.slotRow}>
+            <Text style={styles.doc}>{a.doctor}</Text>
+            <Text style={styles.meta}>{a.specialty} • {a.slot}</Text>
+          </View>
+        ))}
+      </SectionCard>
+
+      <SectionCard title="Priority Subscription" subtitle="Faster routing in emergencies and shorter wait slots">
+        <Text style={styles.meta}>Plan tiers: Basic, Priority Plus, Family Guardian Plus</Text>
+      </SectionCard>
+
+      <SectionCard title="Cashless & Cost Transparency" subtitle="Pre-verify insurance and estimate treatment costs">
+        <Text style={styles.meta}>Includes pre-admission paperwork and admission readiness checks.</Text>
       </SectionCard>
     </ScrollView>
   );
@@ -119,4 +139,5 @@ const styles = StyleSheet.create({
     marginBottom: 8
   },
   actionTextSecondary: { color: "#1769e0", fontWeight: "700" }
+  meta: { color: "#5d6b7b" }
 });
