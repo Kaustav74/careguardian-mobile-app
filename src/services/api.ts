@@ -53,33 +53,3 @@ export async function fetchHospitalAvailability() {
   if (!response.ok) throw new Error("availability_failed");
   return response.json() as Promise<Array<{ id: string; name: string; beds: number; icu: number; ambulanceReady: number }>>;
 }
-
-export async function submitAdmissionRequest(params: {
-  token: string;
-  hospitalId: string;
-  reason: string;
-  insuranceProvider: string;
-  preAdmission: { symptoms: string; notes: string };
-}) {
-  const response = await fetch(`${API_BASE_URL}/admissions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${params.token}`
-    },
-    body: JSON.stringify(params)
-  });
-
-  if (!response.ok) throw new Error("admission_submit_failed");
-  return response.json() as Promise<{ admission: { id: string; status: string; hospitalId: string } }>;
-}
-
-export async function fetchMyNotifications(token: string) {
-  const response = await fetch(`${API_BASE_URL}/me/notifications`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  if (!response.ok) throw new Error("notifications_failed");
-  return response.json() as Promise<
-    Array<{ id: string; type: string; title: string; body: string; createdAt: string; read: boolean }>
-  >;
-}
